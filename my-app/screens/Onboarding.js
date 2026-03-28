@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState } from 'react';
 import {
   View,
@@ -6,10 +7,9 @@ import {
   Image,
   TextInput,
   Pressable,
-  StatusBar,
 } from 'react-native';
 
-const Onboarding = () => {
+const Onboarding = ({ setIsOnboardingCompleted }) => {
   const [name, onChangeName] = useState('');
   const [email, onChangeEmail] = useState('');
 
@@ -19,37 +19,49 @@ const Onboarding = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image style={styles.logo} source={require('../img/Logo.png')} />
-      </View>
-      <View style={styles.body}>
-        <Text style={[styles.h1, styles.primaryGreen]}>Join Little Lemon</Text>
-        <Text style={[styles.bodyText, { marginTop: 16 }]}>
-          Create an account to get started
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Enter your name'
-          placeholderTextColor='#999999'
-          value={name}
-          onChangeText={onChangeName}
-        />
-        <TextInput
-          style={{ ...styles.input, marginTop: 16 }}
-          placeholder='Enter your email'
-          placeholderTextColor='#999999'
-          value={email}
-          onChangeText={onChangeEmail}
-          keyboardType='email-address'
-          autoCapitalize='none'
-        />
+      <View style={styles.layout}>
+        <View style={styles.header}>
+          <Image style={styles.logo} source={require('../img/Logo.png')} />
+        </View>
+        <View style={styles.body}>
+          <Text style={[styles.h1, styles.primaryGreen]}>
+            Join Little Lemon
+          </Text>
+          <Text style={[styles.bodyText, { marginTop: 16 }]}>
+            Create an account to get started
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder='Enter your name'
+            placeholderTextColor='#999999'
+            value={name}
+            onChangeText={onChangeName}
+          />
+          <TextInput
+            style={{ ...styles.input, marginTop: 16 }}
+            placeholder='Enter your email'
+            placeholderTextColor='#999999'
+            value={email}
+            onChangeText={onChangeEmail}
+            keyboardType='email-address'
+            autoCapitalize='none'
+          />
 
-        <Pressable
-          style={[styles.button, !isFormValid && styles.buttonDisabled]}
-          disabled={!isFormValid}
-        >
-          <Text style={styles.buttonText}>Next</Text>
-        </Pressable>
+          <Pressable
+            style={[styles.button, !isFormValid && styles.buttonDisabled]}
+            disabled={!isFormValid}
+            onPress={async () => {
+              try {
+                await AsyncStorage.setItem('onboardingCompleted', 'true');
+                setIsOnboardingCompleted(true);
+              } catch (e) {
+                console.log('Error saving onboarding status', e);
+              }
+            }}
+          >
+            <Text style={styles.buttonText}>Next</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -58,12 +70,15 @@ const Onboarding = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // marginBottom: 184,
+    backgroundColor: '#ffffff',
+  },
+  layout: {
     marginHorizontal: 25,
-    // alignItems: 'center',
+    marginBottom: 184,
   },
   header: {
     marginTop: 94,
+    marginHorizontal: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },
