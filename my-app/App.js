@@ -5,12 +5,22 @@ import OnboardingScreen from './screens/Onboarding';
 import ProfileScreen from './screens/Profile';
 import SplashScreen from './screens/Splash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [fontsLoaded] = useFonts({
+    'MarkaziText-Medium': require('./assets/fonts/MarkaziText-Medium.ttf'),
+    'Karla-Regular': require('./assets/fonts/Karla-Regular.ttf'),
+    'Inter-SemiBold': require('./assets/fonts/Inter-SemiBold.ttf'),
+    'Inter-Medium': require('./assets/fonts/Inter-Medium.ttf'),
+  });
 
   useEffect(() => {
     const loadOnboardingStatus = async () => {
@@ -27,10 +37,9 @@ function App() {
 
     loadOnboardingStatus();
 
-    // ✅ Keep splash screen for 10 seconds
     setTimeout(() => {
       setIsLoading(false);
-    }, 10000); // 10,000ms = 10 seconds
+    }, 5000);
   }, []);
 
   if (isLoading) {
@@ -38,22 +47,25 @@ function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {isOnboardingCompleted ? (
-          <Stack.Screen name='Profile' component={ProfileScreen} />
-        ) : (
-          <Stack.Screen name='Onboarding'>
-            {(props) => (
-              <OnboardingScreen
-                {...props}
-                setIsOnboardingCompleted={setIsOnboardingCompleted}
-              />
-            )}
-          </Stack.Screen>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <StatusBar style='light' />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isOnboardingCompleted ? (
+            <Stack.Screen name='Profile' component={ProfileScreen} />
+          ) : (
+            <Stack.Screen name='Onboarding'>
+              {(props) => (
+                <OnboardingScreen
+                  {...props}
+                  setIsOnboardingCompleted={setIsOnboardingCompleted}
+                />
+              )}
+            </Stack.Screen>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
