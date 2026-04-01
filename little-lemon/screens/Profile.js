@@ -82,6 +82,8 @@ export default function Profile({ refreshOnboarding }) {
 
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.content}>
+
+          {/* Header */}
           <View style={styles.header}>
             <Image source={require('../img/arrow-left.png')} />
             <Image style={styles.logo} source={require('../img/Logo.png')} />

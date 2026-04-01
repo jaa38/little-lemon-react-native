@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import HomeScreen from './screens/Home';
 
 import OnboardingScreen from './screens/Onboarding';
 import ProfileScreen from './screens/Profile';
@@ -39,22 +40,26 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isOnboarded ? (
+     <NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isOnboarded ? (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Profile">
             {(props) => (
               <ProfileScreen {...props} refreshOnboarding={checkOnboarding} />
             )}
           </Stack.Screen>
-        ) : (
-          <Stack.Screen name="Onboarding">
-            {(props) => (
-              <OnboardingScreen {...props} onComplete={checkOnboarding} />
-            )}
-          </Stack.Screen>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+        </>
+      ) : (
+        <Stack.Screen name="Onboarding">
+          {(props) => (
+            <OnboardingScreen {...props} onComplete={checkOnboarding} />
+          )}
+        </Stack.Screen>
+      )}
+    </Stack.Navigator>
+  </NavigationContainer>
+
   );
 }
