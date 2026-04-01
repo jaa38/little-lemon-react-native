@@ -23,6 +23,9 @@ import { FlatList } from 'react-native';
 
 export default function Home({ navigation }) {
   const [menu, setMenu] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const categories = ['Starters', 'Mains', 'Desserts', 'Sides'];
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -32,6 +35,42 @@ export default function Home({ navigation }) {
     createTable();
     checkData();
   }, []);
+
+  useEffect(() => {
+    filterByCategories();
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      filterMenu();
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [searchText, selectedCategories]);
+
+  const filterMenu = () => {
+  let query = 'SELECT * FROM menu WHERE 1=1';
+  let params = [];
+
+  // Search filter
+  if (searchText) {
+    query += ' AND name LIKE ?';
+    params.push(`%${searchText}%`);
+  }
+
+  // Category filter
+  if (selectedCategories.length > 0) {
+    const placeholders = selectedCategories.map(() => '?').join(',');
+    query += ` AND category IN (${placeholders})`;
+    params.push(...selectedCategories);
+  }
+
+  db.transaction(tx => {
+    tx.executeSql(query, params, (_, { rows }) => {
+      setMenu(rows._array);
+    });
+  });
+};
 
   const fetchMenu = async () => {
     try {
@@ -57,7 +96,8 @@ export default function Home({ navigation }) {
         name TEXT,
         price REAL,
         description TEXT,
-        image TEXT
+        image TEXT,
+        category TEXT
       );`,
         [],
         () => console.log('Table created'),
@@ -70,9 +110,9 @@ export default function Home({ navigation }) {
     db.transaction((tx) => {
       menuItems.forEach((item) => {
         tx.executeSql(
-          `INSERT INTO menu (name, price, description, image)
-         VALUES (?, ?, ?, ?)`,
-          [item.name, item.price, item.description, item.image],
+          `INSERT INTO menu (name, price, description, image, category)
+         VALUES (?, ?, ?, ?, ?)`,
+          [item.name, item.price, item.description, item.image, item.category],
         );
       });
     });
@@ -106,6 +146,39 @@ export default function Home({ navigation }) {
     });
   };
 
+  const toggleCategory = (category) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  };
+
+  const mapCategory = (name) => {
+    if (name.toLowerCase().includes('salad')) return 'Starters';
+    if (name.toLowerCase().includes('pasta')) return 'Mains';
+    return 'Desserts';
+  };
+
+  const filterByCategories = () => {
+    if (selectedCategories.length === 0) {
+      loadMenu();
+      return;
+    }
+
+    const placeholders = selectedCategories.map(() => '?').join(',');
+
+    db.transaction((tx) => {
+      tx.executeSql(
+        `SELECT * FROM menu WHERE category IN (${placeholders})`,
+        selectedCategories,
+        (_, { rows }) => {
+          setMenu(rows._array);
+        },
+      );
+    });
+  };
+
   return (
     <>
       <SafeAreaView style={styles.safeAreaTop} edges={['top']}>
@@ -119,70 +192,96 @@ export default function Home({ navigation }) {
               <Image source={require('../img/profile-picture.png')} />
             </TouchableOpacity>
           </View>
-          <ScrollView>
-            <View>
-              <View style={styles.heroSection}>
-                <View>
-                  <Text style={[typography.h1, { color: '#F4CE14' }]}>
-                    Little Lemon
-                  </Text>
-                  <Text style={[typography.h2, { color: '#FFFFFF' }]}>
-                    Chicago
-                  </Text>
-                </View>
-                <View style={styles.textNImage}>
-                  <View>
-                    <Text
-                      style={[
-                        typography.body,
-                        { color: '#FFFFFF', marginTop: 8, width: 210 },
-                      ]}
-                    >
-                      We are a family-owned restaurant, focused on traditional
-                      recipes served with a modern twist.
-                    </Text>
-                  </View>
-                  <View>
-                    <Image source={require('../img/HeroImage.png')} />
-                  </View>
-                </View>
-                <SearchBar />
+          {/* <ScrollView> */}
+          <View>
+            <View style={styles.heroSection}>
+              <View>
+                <Text style={[typography.h1, { color: '#F4CE14' }]}>
+                  Little Lemon
+                </Text>
+                <Text style={[typography.h2, { color: '#FFFFFF' }]}>
+                  Chicago
+                </Text>
               </View>
-              <View style={styles.OrderForDelivery}>
+              <View style={styles.textNImage}>
                 <View>
-                  <Text style={[typography.h2]}>Order for delivery</Text>
+                  <Text
+                    style={[
+                      typography.body,
+                      { color: '#FFFFFF', marginTop: 8, width: 210 },
+                    ]}
+                  >
+                    We are a family-owned restaurant, focused on traditional
+                    recipes served with a modern twist.
+                  </Text>
                 </View>
-                <View style={styles.UICardContainer}>
-                  <UICard label='Starters' />
-                  <UICard label='Mains' />
-                  <UICard label='Desserts' />
-                  <UICard label='Sides' />
+                <View>
+                  <Image source={require('../img/HeroImage.png')} />
                 </View>
               </View>
-              <Divider />
-
-              <FlatList
-                data={menu}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <View style={styles.menuList}>
-                    <View style={styles.menuInformation}>
-                      <Text style={typography.h4}>{item.name}</Text>
-                      <Text style={typography.body}>{item.description}</Text>
-                      <Text style={typography.price}>${item.price}</Text>
-                    </View>
-
-                    <Image
-                      style={styles.menuImage}
-                      source={{
-                        uri: `https://github.com/Meta-Mobile-Developer-PC/Working-With-Data-API/blob/main/images/${item.image}?raw=true`,
-                      }}
-                    />
-                  </View>
-                )}
-              />
+              <SearchBar value={searchText} onChangeText={setSearchText} />
             </View>
-          </ScrollView>
+            <View style={styles.OrderForDelivery}>
+              <View>
+                <Text style={[typography.h2]}>Order for delivery</Text>
+              </View>
+              <View style={styles.UICardContainer}>
+                <FlatList
+                  data={categories}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => {
+                    const isSelected = selectedCategories.includes(item);
+
+                    return (
+                      <TouchableOpacity onPress={() => toggleCategory(item)}>
+                        <View
+                          style={{
+                            padding: 10,
+                            borderRadius: 20,
+                            backgroundColor: isSelected ? '#495E57' : '#EDEFEE',
+                            marginRight: 10,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: isSelected ? '#FFFFFF' : '#333333',
+                            }}
+                          >
+                            {item}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </View>
+            </View>
+            <Divider />
+
+            <FlatList
+              data={menu}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.menuList}>
+                  <View style={styles.menuInformation}>
+                    <Text style={typography.h4}>{item.name}</Text>
+                    <Text style={typography.body}>{item.description}</Text>
+                    <Text style={typography.price}>${item.price}</Text>
+                  </View>
+
+                  <Image
+                    style={styles.menuImage}
+                    source={{
+                      uri: `https://github.com/Meta-Mobile-Developer-PC/Working-With-Data-API/blob/main/images/${item.image}?raw=true`,
+                    }}
+                  />
+                </View>
+              )}
+            />
+          </View>
+          {/* </ScrollView> */}
         </View>
       </SafeAreaView>
     </>
