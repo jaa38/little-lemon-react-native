@@ -1,0 +1,63 @@
+export const typography = {
+  h1: {
+    fontFamily: 'MarkaziText-Medium',
+    fontSize: 48,
+    lineHeight: 48,
+    letterSpacing: 0,
+    fontWeight: '500',
+  },
+  h2: {
+    fontFamily: 'MarkaziText-Medium',
+    fontSize: 28,
+    lineHeight: 32,
+    letterSpacing: 0,
+  },
+  h3: {
+    fontFamily: 'MarkaziText-Medium',
+    fontSize: 24,
+    lineHeight: 28,
+    letterSpacing: 0,
+  },
+  h4: {
+    fontFamily: 'MarkaziText-Medium',
+    fontSize: 18,
+    lineHeight: 18,
+    letterSpacing: 0,
+    fontWeight: '500',
+  },
+  body: {
+    fontFamily: 'Karla-Regular',
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: 0,
+  },
+  price: {
+    fontFamily: 'Karla-Bold',
+    fontSize: 18,
+    lineHeight: 18,
+    letterSpacing: 0,
+    fontWeight: '700',
+  },
+  buttonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    lineHeight: 16,
+    letterSpacing: 0,
+    fontWeight: '600',
+  },
+  labelText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: -0.12,
+    fontWeight: '500',
+    color: '#495E57',
+  },
+  inputText: {
+    fontFamily: 'Karla-Regular',
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: -0.16,
+    fontWeight: '400',
+  },
+};
