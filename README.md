@@ -100,7 +100,9 @@ The design and branding follow the official Little Lemon style guide.
 ```bash
 git clone https://github.com/jaa38/little-lemon-react-native.git
 cd little-lemon-react-native
+cd little-lemon
 npm install
+npx expo start -c
 ```
 
 ### Run the App
