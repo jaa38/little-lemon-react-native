@@ -22,8 +22,7 @@ import Checkbox from '../components/Checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function Profile({ refreshOnboarding }) {
-
+export default function Profile({ navigation, refreshOnboarding }) {
   const [notifications, setNotifications] = useState({
     orderStatuses: false,
     passwordChanges: false,
@@ -44,11 +43,22 @@ export default function Profile({ refreshOnboarding }) {
 
   useEffect(() => {
     const loadData = async () => {
-      const savedFirstName = await AsyncStorage.getItem('firstName');
-      const savedEmail = await AsyncStorage.getItem('email');
+      try {
+        const savedFirstName = await AsyncStorage.getItem('firstName');
+        const savedEmail = await AsyncStorage.getItem('email');
+        const savedPhone = await AsyncStorage.getItem('phone');
+        const savedAvatar = await AsyncStorage.getItem('avatar');
+        const savedNotifications = await AsyncStorage.getItem('notifications');
 
-      if (savedFirstName) setFirstName(savedFirstName);
-      if (savedEmail) setEmail(savedEmail);
+        if (savedFirstName) setFirstName(savedFirstName);
+        if (savedEmail) setEmail(savedEmail);
+        if (savedPhone) setPhone(savedPhone);
+        if (savedAvatar) setAvatar(savedAvatar);
+        if (savedNotifications)
+          setNotifications(JSON.parse(savedNotifications));
+      } catch (e) {
+        console.log('Error loading profile', e);
+      }
     };
 
     loadData();
@@ -82,10 +92,11 @@ export default function Profile({ refreshOnboarding }) {
 
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.content}>
-
           {/* Header */}
           <View style={styles.header}>
-            <Image source={require('../img/arrow-left.png')} />
+            <Pressable onPress={() => navigation.goBack()}>
+              <Image source={require('../img/arrow-left.png')} />
+            </Pressable>
             <Image style={styles.logo} source={require('../img/Logo.png')} />
             <Image source={require('../img/profile-picture.png')} />
           </View>
@@ -130,7 +141,12 @@ export default function Profile({ refreshOnboarding }) {
                     label='Last Name'
                     placeholder='Enter your last name'
                   />
-                  <AppTextInput label='Email' placeholder='Enter your email' />
+                  <AppTextInput
+                    label='Email'
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder='Enter your email'
+                  />
                   <AppTextInput
                     label='Phone Number'
                     value={phone}

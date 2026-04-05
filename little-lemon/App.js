@@ -4,21 +4,22 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import HomeScreen from './screens/Home';
 
+import HomeScreen from './screens/Home';
 import OnboardingScreen from './screens/Onboarding';
 import ProfileScreen from './screens/Profile';
+import SplashScreen from './screens/Splash';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(null);
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
 
-  // ✅ Check onboarding status
   const checkOnboarding = async () => {
     try {
       const value = await AsyncStorage.getItem('onboardingCompleted');
-      setIsOnboarded(value !== null);
+      setIsOnboarded(value === 'true');
     } catch (e) {
       console.log('Error reading onboarding status', e);
     }
@@ -28,7 +29,6 @@ export default function App() {
     checkOnboarding();
   }, []);
 
-  // ✅ Fonts
   const [fontsLoaded] = useFonts({
     'MarkaziText-Medium': require('./fonts/MarkaziText-Medium.ttf'),
     'Karla-Regular': require('./fonts/Karla-Regular.ttf'),
@@ -37,29 +37,35 @@ export default function App() {
     'Inter-Medium': require('./fonts/Inter-Medium.ttf'),
   });
 
-  if (!fontsLoaded) return null;
+  // ⏳ Wait for everything
+  if (!fontsLoaded || isOnboarded === null) return null;
 
+  // 🟡 SHOW SPLASH FIRST
+  if (isSplashVisible) {
+    return <SplashScreen onFinish={() => setIsSplashVisible(false)} />;
+  }
+
+  // 🟢 THEN SHOW APP
   return (
-     <NavigationContainer>
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {isOnboarded ? (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Profile">
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isOnboarded ? (
+          <>
+            <Stack.Screen name='Home' component={HomeScreen} />
+            <Stack.Screen name='Profile'>
+              {(props) => (
+                <ProfileScreen {...props} refreshOnboarding={checkOnboarding} />
+              )}
+            </Stack.Screen>
+          </>
+        ) : (
+          <Stack.Screen name='Onboarding'>
             {(props) => (
-              <ProfileScreen {...props} refreshOnboarding={checkOnboarding} />
+              <OnboardingScreen {...props} onComplete={checkOnboarding} />
             )}
           </Stack.Screen>
-        </>
-      ) : (
-        <Stack.Screen name="Onboarding">
-          {(props) => (
-            <OnboardingScreen {...props} onComplete={checkOnboarding} />
-          )}
-        </Stack.Screen>
-      )}
-    </Stack.Navigator>
-  </NavigationContainer>
-
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
